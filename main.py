@@ -1,36 +1,38 @@
 from flask import Flask, render_template, request, jsonify
 from PyPDF2 import PdfReader
-from google.cloud import secretmanager
-from google.cloud import storage
 from time import strftime
 import openai
 import os
-import google.cloud.logging
 import logging
 from werkzeug.utils import secure_filename
+from groq import Groq
+import markdown
 
 
-client = google.cloud.logging.Client()
-client.setup_logging()
+#client = google.cloud.logging.Client()
+#client.setup_logging()
 
 app = Flask(__name__)
 summaries = {}
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
-BUCKET_NAME = 'PROD_BUCKET_NAME'
+#BUCKET_NAME = 'PROD_BUCKET_NAME'
 
-def getOpenaiSecret():
-    client = secretmanager.SecretManagerServiceClient()
-    return client.access_secret_version(request={"name": "projects/1018379038222/secrets/OPENAI_API_KEY/versions/1"}).payload.data.decode("UTF-8")
+#def getOpenaiSecret():
+#    client = secretmanager.SecretManagerServiceClient()
+#    return client.access_secret_version(request={"name": "projects/1018379038222/secrets/OPENAI_API_KEY/versions/1"}).payload.data.decode("UTF-8")
 
-openai.api_key = getOpenaiSecret()
+API_KEY = os.environ.get('GROQ_API_KEY')
+client = Groq(
+    api_key=API_KEY,
+)
 MAX_TOKENS = 4000
 
 # Configure Google Cloud Storage
-storage_client = storage.Client()
-bucket_name = os.environ.get(BUCKET_NAME)  # Add the bucket name here 
-bucket = storage_client.bucket(bucket_name)
+#storage_client = storage.Client()
+#bucket_name = os.environ.get(BUCKET_NAME)  # Add the bucket name here 
+#bucket = storage_client.bucket(bucket_name)
 
 def upload_to_gcs(file):
     if file:
@@ -55,7 +57,7 @@ def upload_and_summarize():
             pdf_file = request.files['file']
             if pdf_file.filename != '':
 
-                gcs_filename = upload_to_gcs(pdf_file)
+                #gcs_filename = upload_to_gcs(pdf_file)
                 
                 # Extract text from the uploaded PDF file
                 content = extract_text_from_pdf(pdf_file)
@@ -65,7 +67,7 @@ def upload_and_summarize():
                 summary_id = len(summaries) + 1
                 summaries[summary_id] = summary
     
-                return jsonify({'summary_id': summary_id, 'filename_uploaded': gcs_filename})
+                return jsonify({'summary_id': summary_id, 'filename_uploaded': pdf_file.filename})
         
         elif 'text' in request.json:
             text = request.json['text']
@@ -112,20 +114,23 @@ def generate_summary(content):
         summaries = []
         for chunk in chunks:
             prompt = f"Summarize the following text:\n\n{chunk}"
+            response = client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        model="llama-3.3-70b-versatile",
+                        temperature=0.9,
+                        max_completion_tokens=1024,
+                        top_p=1,
+)
+            summary = response.choices[0].message.content
+            summary = markdown.markdown(summary)
+            summaries.append(f"""{summary}""")
     
-            response = openai.Completion.create(
-                engine="text-davinci-002",
-                prompt=prompt,
-                max_tokens=150,
-                temperature=0.9,
-                top_p=1.0,
-                frequency_penalty=0.0,
-                presence_penalty=0.0,
-            )
-            summary = response.choices[0].text.strip()
-            summaries.append(summary)
-    
-        return ' '.join(summaries)
+        return '\n'.join(summaries)
     except ValueError:
         logging.exception(generate_summary.__name__ + '(): ' + ValueError)
 

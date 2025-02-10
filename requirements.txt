@@ -6,9 +6,7 @@ Click==8.1.2
 Markupsafe==2.1.1
 Jinja2-cli==0.8.2
 PyPDF2==3.0.1
-openai==0.28.0
-google-cloud-logging
-google-cloud-secret-manager
-google-cloud-storage
+groq
 selenium
 pytest
+markdown
