@@ -13,7 +13,6 @@ import markdown
 #client.setup_logging()
 
 app = Flask(__name__)
-summaries = {}
 
 #logging.basicConfig(level=logging.INFO)
 
@@ -83,18 +82,6 @@ def upload_and_summarize():
     except ValueError:
         logging.exception(upload_and_summarize.__name__ + '(): ' + ValueError)
 
-@app.route('/summary/<int:summary_id>')
-def show_summary(summary_id):
-    logging.info('Inside ' + show_summary.__name__+ '()')
-    try:
-        summary = summaries.get(summary_id)
-        if summary:
-            return render_template('summary1.html', summary=summary)
-        else:
-            return "Summary not found."
-    except ValueError:
-        logging.exception(show_summary.__name__ + '(): ' + 'summary_id ' + summary_id + ' ' + ValueError)
-
 def extract_text_from_pdf(pdf_file):
     logging.info('Inside ' + extract_text_from_pdf.__name__+ '()')
     try:
@@ -134,5 +121,6 @@ def generate_summary(content):
     except ValueError:
         logging.exception(generate_summary.__name__ + '(): ' + ValueError)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Remove or comment out the following block for Vercel compatibility:
+# if __name__ == '__main__':
+#     app.run(debug=True)
