@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Text Summarizer</title>
+    <style>
+      /* Global styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f5f5f7;
+        color: #333;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        position: relative;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .navbar {
+        width: 100%;
+        padding: 20px 10px;
+        background-color: #fff;
+        color: #333;
+        text-align: left;
+        font-weight: 500;
+        font-size: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        animation: slideDown 1s ease-in-out;
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      /* The switch - the box around the slider */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+
+      /* Hide default HTML checkbox */
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      /* The slider */
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      input:checked + .slider {
+        background-color: #2196f3;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #2196f3;
+      }
+
+      input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+
+      .dark-mode-btn {
+        margin-right: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+      }
+
+      .dark-mode-btn .toggle-label {
+        margin-left: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .container {
+        max-width: 800px;
+        width: 90%;
+        margin: 100px auto 20px;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        animation: slideUp 1s ease-in-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #333;
+      }
+
+      #textInput {
+        width: calc(100% - 40px);
+        max-width: 100%;
+        height: 200px;
+        margin-bottom: 20px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        resize: none;
+        font-size: 16px;
+      }
+
+      button {
+        padding: 12px 25px;
+        background-color: #0070c9;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        outline: none;
+        margin-top: 20px;
+      }
+
+      button:hover {
+        background-color: #005ea2;
+      }
+
+      /* Dark mode styles */
+      body.dark-mode {
+        background-color: #333;
+        color: #fff;
+      }
+
+      body.dark-mode .navbar {
+        background-color: #222;
+        color: #fff;
+      }
+
+      body.dark-mode .container {
+        background-color: #444;
+        box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
+      }
+
+      body.dark-mode h1,
+      body.dark-mode label,
+      body.dark-mode button {
+        color: #fff;
+      }
+
+      body.dark-mode #textInput {
+        background-color: #666;
+        color: #fff;
+        border: 1px solid #888;
+      }
+
+      /* File upload styles */
+      .file-upload-container {
+        text-align: center;
+        margin-top: 40px;
+      }
+
+      #fileInput {
+        display: none;
+      }
+
+      .file-upload-btn {
+        padding: 12px 25px;
+        background-color: #0070c9;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        outline: none;
+      }
+
+      .file-upload-btn:hover {
+        background-color: #005ea2;
+      }
+
+      /* Loading animation styles */
+      .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loading-spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <span>Text Summarizer</span>
+      <div class="dark-mode-btn" onclick="toggleDarkMode()">
+        <label class="switch">
+          <input
+            type="checkbox"
+            id="darkModeToggle"
+            onchange="toggleDarkMode(this)"
+          />
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">Dark Mode</span>
+      </div>
+    </div>
+    <div class="container">
+      <h1>Welcome!</h1>
+      <textarea
+        id="textInput"
+        rows="6"
+        placeholder="Enter text to summarize..."
+      ></textarea>
+      <button type="button" onclick="summarizeText()">Summarize Text</button>
+    </div>
+    <div class="container">
+      <h1>You can also try and upload a pdf!</h1>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="file-upload-container">
+          <label for="fileInput" class="file-upload-btn">Upload PDF</label>
+          <input
+            type="file"
+            id="fileInput"
+            accept=".pdf"
+            onchange="handleFileUpload(event)"
+          />
+        </div>
+      </form>
+      <!-- Display uploaded file name -->
+      <div
+        class="uploaded-file-name"
+        id="uploadedFileName"
+        style="display: none"
+      ></div>
+    </div>
+
+    <!-- Loading overlay for the loading animation -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        document.body.classList.toggle("dark-mode", isDarkMode);
+
+        // If you have a toggle checkbox, set its state
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        if (darkModeToggle) {
+          darkModeToggle.checked = isDarkMode;
+        }
+      });
+
+      function summarizeText() {
+        const text = document.getElementById("textInput").value;
+        if (text.trim() !== "") {
+          showLoading(); // Show loading animation
+
+          fetch("/api/upload_and_summarize", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text: text }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              hideLoading(); // Hide loading animation
+              handleSummaryResponse(data);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              hideLoading(); // Hide loading animation on error
+              // Handle the error scenario if needed
+            });
+        } else {
+          console.error("Empty text!");
+          // Handle empty text scenario
+        }
+      }
+
+      function showLoading() {
+        document.getElementById("loadingOverlay").style.display = "flex";
+      }
+
+      function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none";
+      }
+
+      function summarizeFile(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        showLoading(); // Show loading animation
+        fetch("/api/upload_and_summarize", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
+            handleSummaryResponse(data);
+          })
+          .catch((error) => {
+            hideLoading();
+            console.error("Error:", error);
+            // Handle the error scenario if needed
+          });
+      }
+
+      function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          summarizeFile(file);
+          // Display uploaded filename
+          document.getElementById(
+            "uploadedFileName"
+          ).innerText = `Uploaded File: ${file.name}`;
+          document.getElementById("uploadedFileName").style.display = "block";
+        }
+      }
+
+      function handleSummaryResponse(data) {
+        if (data.summary) {
+          sessionStorage.setItem("summary", data.summary);
+          window.location.href = "/summary.html";
+        } else if (data.error) {
+          alert(data.error);
+        } else {
+          alert("An unexpected error occurred.");
+        }
+      }
+
+      function toggleDarkMode(input) {
+        const isChecked = input.checked;
+        localStorage.setItem("darkMode", isChecked);
+
+        isChecked
+          ? document.body.classList.add("dark-mode")
+          : document.body.classList.remove("dark-mode");
+      }
+    </script>
+  </body>
+</html>

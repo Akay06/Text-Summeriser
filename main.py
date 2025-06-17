@@ -42,7 +42,7 @@ def upload_to_gcs(file):
 def index():
     logging.info('Inside ' + index.__name__ + '()')
     try:
-        return render_template('index1.html')
+        return render_template('index.html')
     except ValueError:
         logging.exception(index.__name__ + '(): ' + ValueError)
 
@@ -53,29 +53,18 @@ def upload_and_summarize():
         if 'file' in request.files:
             pdf_file = request.files['file']
             if pdf_file.filename != '':
-
                 #gcs_filename = upload_to_gcs(pdf_file)
-                
                 # Extract text from the uploaded PDF file
                 content = extract_text_from_pdf(pdf_file)
-    
                 # Generate summary from the extracted text
                 summary = generate_summary(content)
-                summary_id = len(summaries) + 1
-                summaries[summary_id] = summary
-    
-                return jsonify({'summary_id': summary_id, 'filename_uploaded': pdf_file.filename})
-        
+                return jsonify({'summary': summary, 'filename_uploaded': pdf_file.filename})
         elif 'text' in request.json:
             text = request.json['text']
             if text:
                 # Generate summary from the input text
                 summary = generate_summary(text)
-                summary_id = len(summaries) + 1
-                summaries[summary_id] = summary
-    
-                return jsonify({'summary_id': summary_id})
-        
+                return jsonify({'summary': summary})
         return jsonify({'error': 'Invalid input'})
     except ValueError:
         logging.exception(upload_and_summarize.__name__ + '(): ' + ValueError)
@@ -118,6 +107,10 @@ def generate_summary(content):
         return '\n'.join(summaries)
     except ValueError:
         logging.exception(generate_summary.__name__ + '(): ' + ValueError)
+
+@app.route('/summary.html')
+def summary_html():
+    return render_template('summary.html')
 
 # Remove or comment out the following block for Vercel compatibility:
 # if __name__ == '__main__':
