@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 from PyPDF2 import PdfReader
-from time import strftime
-import openai
 import os
 import logging
 from werkzeug.utils import secure_filename
